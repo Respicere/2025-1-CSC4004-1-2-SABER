@@ -22,14 +22,9 @@ import static com.oss.saber.domain.VerificationResult.PENDING;
 @RequiredArgsConstructor
 public class VerificationLinkService {
     private final VerificationLinkRepository verificationLinkRepository;
-    private final CategoryRepository categoryRepository;
-    private final TokenProvider tokenProvider;
     private final DefaultVerificationRepository defaultVerificationRepository;
 
     public VerificationLink createLink(CategorySettingRequest request) {
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
-
         VerificationLink link = VerificationLink.builder()
                 .productName(request.getProductName())
                 .linkToken(UUID.randomUUID())
@@ -51,9 +46,8 @@ public class VerificationLinkService {
             verificationLink.setTerminatedAt(LocalDateTime.now().plusMinutes(request.getLimitedMinutes()));
         }
 
-        if (request.getCustomRequests() != null) {
-            verificationLink.setRequirementText(request.getCustomRequests());
-        }
+        verificationLink.setRequirementText(request.getCustomRequests());
+        System.out.println(request.getCustomRequests());
 
         List<Long> selectedMethodIds = request.getVerificationMethods();
         if (selectedMethodIds != null && !selectedMethodIds.isEmpty()) {
