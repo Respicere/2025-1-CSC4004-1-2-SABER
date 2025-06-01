@@ -29,6 +29,9 @@ import BuyerVerificationCompleteScreen from './pages/BuyerVerificationCompleteSc
 import ResultScreen from './pages/ResultScreen'
 import CaptureWarningScreen from './pages/CaptureWarningScreen';
 import EndScreen from './pages/EndScreen';
+import S3Uploader from "./pages/S3Uploader";
+import VerificationCamera from "./pages/VerificationCamera";
+import SellerVerificationStart from "./pages/SellerVerificationStart";
 
 function App() {
   const [verificationId, setVerificationId] = useState(null);
@@ -67,6 +70,12 @@ function App() {
           <Route path="/result" element={<ResultScreen />} />
           <Route path="/capture-warning" element={<CaptureWarningScreen />} />
           <Route path="/end" element={<EndScreen />} />
+
+          <Route path="/upload" element={<S3Uploader  />} />
+          <Route path="/seller/verification-start" element={<SellerVerificationStart />} />
+          <Route path="/verifications/:id/camera" element={<VerificationCamera />} />
+          <Route path="*" element={<div>Not Found</div>} />
+
         </Routes>
       </TimerProvider>
     </div>

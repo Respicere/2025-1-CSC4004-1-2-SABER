@@ -2,6 +2,7 @@ package com.oss.saber.controller;
 
 import com.oss.saber.domain.Verification;
 import com.oss.saber.domain.VerificationLink;
+import com.oss.saber.domain.VerificationResult;
 import com.oss.saber.dto.VerificationLinkResponse;
 import com.oss.saber.dto.VerificationResponse;
 import com.oss.saber.dto.mapper.VerificationMapper;
@@ -69,5 +70,30 @@ public class VerificationLink2RestController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/link/{verificationLinkId}/pending-verification-ids")
+    @Operation(summary = "인증되지 않은 요청 ID 목록 조회", description = "해당 링크에서 인증되지 않은 Verification의 ID만 반환합니다.")
+    public ResponseEntity<List<Long>> getPendingVerificationIds(@PathVariable Long verificationLinkId) {
+        VerificationLink link = verificationLinkService.getVerificationLink(verificationLinkId);
+
+        List<Long> pendingIds = link.getVerifications().stream()
+                .filter(v -> VerificationResult.PENDING.equals(v.getResult()))
+                .map(Verification::getId)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(pendingIds);
+    }
+
+    @GetMapping("/link/{verificationLinkId}/verification-ids")
+    @Operation(summary = "세부 인증 ID 목록 조회", description = "링크의 모든 세부 인증 ID를 반환합니다.")
+    public ResponseEntity<List<Long>> getVerificationIds(@PathVariable Long verificationLinkId) {
+        VerificationLink link = verificationLinkService.getVerificationLink(verificationLinkId);
+
+        List<Long> ids = link.getVerifications().stream()
+                .map(Verification::getId)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ids);
     }
 }
