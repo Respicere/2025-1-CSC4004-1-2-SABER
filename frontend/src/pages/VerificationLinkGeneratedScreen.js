@@ -11,8 +11,10 @@ export default function VerificationLinkGeneratedScreen({ verificationId }) {
     const [copied, setCopied] = useState(false);
     const navigate = useNavigate();
 
+    localStorage.setItem("sessionId", verificationId);
+
     useEffect(() => {
-        console.log('verificationId:', verificationId);
+        // console.log('verificationId:', verificationId);
         handleCreateLink();
     }, []);
 
@@ -49,7 +51,7 @@ export default function VerificationLinkGeneratedScreen({ verificationId }) {
         alert('링크가 복사되었습니다.');
         setCopied(true);
         setTimeout(() => {
-            navigate('/waiting');
+            navigate('/waiting', { state: { verificationLinkId : verificationId} });
         }, 5000);
     };
 
@@ -58,7 +60,7 @@ export default function VerificationLinkGeneratedScreen({ verificationId }) {
     };
 
     const Next = () => {
-        navigate('/waiting');
+        navigate('/waiting', { state: { verificationLinkId : verificationId} });
     };
 
     return (
