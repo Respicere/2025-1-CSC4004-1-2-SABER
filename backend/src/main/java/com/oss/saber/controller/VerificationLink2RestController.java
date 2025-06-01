@@ -63,7 +63,6 @@ public class VerificationLink2RestController {
 
         VerificationLinkResponse.toResponse response = VerificationLinkResponse.toResponse.builder()
                 .id(link.getId())
-                .additionalText(link.getAdditionalText())
                 .requirementText(link.getRequirementText())
                 .productName(link.getProductName())
                 .verifications(verificationResponses)

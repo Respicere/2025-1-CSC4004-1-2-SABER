@@ -20,7 +20,6 @@ public class VerificationLinkResponse {
         Long id;
         String productName;
         String requirementText;
-        String additionalText;
         List<VerificationResponse.infoResponse> verifications;
     }
 
@@ -44,7 +43,6 @@ public class VerificationLinkResponse {
         String productName;
         LocalDateTime expiresAt;
         String requirementText;
-        String additionalText;
         List<VerificationResponse.infoResponse> verifications;
     }
 }
