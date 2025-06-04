@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {useLocation, useNavigate} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import '../css/Buyers.css';
 import logoImage from '../assets/logo.png';
 
@@ -89,7 +89,6 @@ function ResultScreen() {
 
             {/* 인증 ID 목록 버튼 */}
             <div className="verification-id-list" style={{ marginBottom: '1rem' }}>
-                <div style={{ marginBottom: '0.5rem', fontWeight: 'bold' }}>인증 ID 선택</div>
                 {verificationIds.length === 0 && <p>인증 ID가 없습니다.</p>}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                     {verificationIds.map(id => (
@@ -115,7 +114,7 @@ function ResultScreen() {
             <div className="media-box">
                 {loadingPhoto && <p>사진 불러오는 중...</p>}
                 {photoError && <p style={{ color: 'red' }}>{photoError}</p>}
-                {photoUrl && <img src={photoUrl} alt="Verification" style={{ maxWidth: '100%', maxHeight: 150 }} />}
+                {photoUrl && <img src={photoUrl} alt="Verification" style={{ maxWidth: '100%', maxHeight: 400 }} />}
                 {!loadingPhoto && !photoUrl && !photoError && <p>사진이 없습니다.</p>}
             </div>
 
