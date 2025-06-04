@@ -10,28 +10,28 @@ function WaitingScreen() {
     const verificationLinkId = localStorage.getItem("sessionId");
 
     useEffect(() => {
-        const checkStatus = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8080/api/link/${verificationLinkId}`);
-                const status = response.data.status;
+    const checkStatus = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8080/api/link/${verificationLinkId}`);
+            const status = response.data.status;
 
-                if (status === 'COMPLETED') {
-                    navigate('/result', { state: { verificationLinkId } });
-                }
-            } catch (error) {
-                console.error('상태 조회 실패:', error);
+            if (status === 'COMPLETED') {
+                navigate('/buyer/complete', { state: { verificationLinkId } });
             }
-        };
+        } catch (error) {
+            console.error('상태 조회 실패:', error);
+        }
+    };
 
-        // 컴포넌트가 마운트되면 즉시 호출
-        checkStatus();
+    // 컴포넌트가 마운트되면 즉시 호출
+    checkStatus();
 
-        // 1분마다 상태 체크
-        const intervalId = setInterval(checkStatus, 60000);
+    // 5초마다 상태 체크
+    const intervalId = setInterval(checkStatus, 5000);
 
-        // 컴포넌트 언마운트 시 interval 정리
-        return () => clearInterval(intervalId);
-    }, [verificationLinkId, navigate]);
+    // 컴포넌트 언마운트 시 interval 정리
+    return () => clearInterval(intervalId);
+}, [verificationLinkId, navigate]);
 
     const verificationLink = `${window.location.origin}/seller/start`;
 
