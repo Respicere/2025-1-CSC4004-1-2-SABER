@@ -1,15 +1,15 @@
-// SellerVerificationStart.js
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "../css/Sellers.css"; // ✅ 판매자 전용 스타일 불러오기
-import logoImage from "../assets/logo.png";
+import '../css/Sellers.css';
 
 function SellerVerificationStart() {
     const [pendingIds, setPendingIds] = useState([]);
+    const [requirementText, setRequirementText] = useState("");
+    const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
-    const VERIFICATION_TIMEOUT = 180; // 제한 시간 (초)
+    const [verifications, setVerifications] = useState([]);
 
     useEffect(() => {
         const verificationLinkId = localStorage.getItem("sessionId");
@@ -19,18 +19,26 @@ function SellerVerificationStart() {
             return;
         }
 
-        axios
-            .get(`http://localhost:8080/api/saber/link/${verificationLinkId}/pending-verification-ids`)
-            .then((res) => {
-                setPendingIds(res.data);
-            })
-            .catch((err) => {
-                console.error("ID 불러오기 실패", err);
-            })
-            .finally(() => {
+        const fetchData = async () => {
+            try {
+                const [idsRes, infoRes] = await Promise.all([
+                    axios.get(`http://localhost:8080/api/saber/link/${verificationLinkId}/pending-verification-ids`),
+                    axios.get(`http://localhost:8080/api/saber/link/${verificationLinkId}/info`)
+                ]);
+
+                setPendingIds(idsRes.data);
+                setRequirementText(infoRes.data.requirementText);
+                setVerifications(infoRes.data.verifications);
+            } catch (err) {
+                console.error("데이터 불러오기 실패", err);
+            } finally {
                 setIsLoading(false);
-            });
+            }
+        };
+
+        fetchData();
     }, []);
+
 
     useEffect(() => {
         if (!isLoading && pendingIds.length === 0) {
@@ -52,43 +60,49 @@ function SellerVerificationStart() {
             });
     };
 
-    const goToHome = () => {
-        navigate('/');
-    };
-
     return (
         <div className="container">
-            <div className="header">
-                <div className="logo-with-text" onClick={goToHome}>
-                    <img src={logoImage} alt="SABER Logo" className="logo-image" />
-                    <div className="logo-text">SABER</div>
-                </div>
-                <div className="menuIcon">☰</div>
-            </div>
-            <h1 className="title">판매자 인증 항목</h1>
-            <p className="description">
-                아래 항목들에 대해 실물 인증을 진행해야 합니다.
-                <br />
-                각 항목마다 인증 시작 시 <strong>{VERIFICATION_TIMEOUT}초</strong>의 제한 시간이 부여됩니다.
-            </p>
+            <h1 className="sellerText">인증 요청 목록</h1>
 
-            {isLoading && <p className="message">인증 요청을 불러오는 중입니다...</p>}
+            {isLoading && <p>인증 요청을 불러오는 중입니다...</p>}
 
             {!isLoading && pendingIds.length === 0 && (
-                <p className="message">모든 인증이 완료되었습니다. 5초 후 제출 페이지로 이동합니다.</p>
+                <p>모든 인증이 완료되었습니다. 5초 후 제출 페이지로 이동합니다.</p>
             )}
 
-            <div className="buttonGroup">
-                {pendingIds.map((id) => (
-                    <button
-                        key={id}
-                        className="doneButton"
-                        onClick={() => startVerification(id)}
-                    >
-                        인증 시작 (ID: {id})
-                    </button>
-                ))}
+            <div className="noticeContainer">
+                {requirementText && (
+                    <div>
+                        <p className="sectionTitle">추가 요청 사항</p>
+                        <p>
+                            {requirementText.split('\n').map((line, index) => (
+                                <React.Fragment key={index} className="subTitle">
+                                    - {line}
+                                    <br/>
+                                </React.Fragment>
+                            ))}
+                        </p>
+                    </div>
+                )}
             </div>
+
+            <ul>
+                {pendingIds.map((id) => {
+                    const verif = verifications.find(v => v.id === id);
+                    const label = verif ? verif.label : "알 수 없는 이름";
+
+                    return (
+                        <li className="button-group" key={id}>
+                            <button
+                                className="doneButton"
+                                onClick={() => startVerification(id)}
+                            >
+                                인증 시작 ({label})
+                            </button>
+                        </li>
+                    );
+                })}
+            </ul>
         </div>
     );
 }

@@ -7,6 +7,7 @@ function VerificationCamera() {
 
     const [photoUrl, setPhotoUrl] = useState("");
     const [comment, setComment] = useState("");
+    const [showModal, setShowModal] = useState(false);
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
     const [uploading, setUploading] = useState(false);
@@ -37,15 +38,22 @@ function VerificationCamera() {
 
         const video = videoRef.current;
         const canvas = canvasRef.current;
-        canvas.width = video.videoWidth || 640; // fallback 크기
+        canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
 
         const ctx = canvas.getContext("2d");
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // 캔버스에서 사진 미리보기용 URL 생성 (선택사항)
+        // 캔버스에서 사진 미리보기용 URL 생성
         const dataUrl = canvas.toDataURL("image/jpeg");
-        setPhotoUrl(dataUrl); // 찍은 사진 화면에 보여주려면 필요
+        setPhotoUrl(dataUrl);
+        setShowModal(true); // 모달 표시
+    };
+
+    const retakePhoto = () => {
+        setShowModal(false);
+        setPhotoUrl("");
+        // 카메라는 계속 실행 중이므로 다시 촬영 가능
     };
 
     const uploadPhoto = async () => {
@@ -72,7 +80,6 @@ function VerificationCamera() {
                 if (!uploadResponse.ok) throw new Error("업로드 실패");
 
                 const s3Url = await uploadResponse.text();
-                setPhotoUrl(s3Url);
 
                 // 2) 인증 제출 API 호출 (comment 포함)
                 const submitResponse = await fetch(`http://localhost:8080/api/verifications/${verificationId}/submit`, {
@@ -89,7 +96,7 @@ function VerificationCamera() {
                 if (!submitResponse.ok) throw new Error("제출 실패");
 
                 alert("사진 제출 성공!");
-                // 제출 성공 후 인증 목록 페이지로 돌아가기
+                setShowModal(false);
                 navigate("/seller/verification-start");
             } catch (error) {
                 alert(error.message);
@@ -100,10 +107,10 @@ function VerificationCamera() {
     };
 
     return (
-        <div className="p-6 max-w-xl mx-auto">
-            <h2 className="text-lg font-semibold mb-4">인증 사진 제출 (ID: {verificationId})</h2>
+        <div className="seller-camera-container">
+            <h2 className="title">인증 사진 제출</h2>
 
-            <button onClick={startCamera} className="bg-gray-500 text-white px-4 py-2 rounded">
+            <button className="cameraButton" onClick={startCamera}>
                 카메라 시작
             </button>
 
@@ -116,40 +123,51 @@ function VerificationCamera() {
 
             <br />
 
-            <button
-                onClick={takePhoto}
-                className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-            >
+            <button onClick={takePhoto} className="cameraButton">
                 사진 촬영
             </button>
 
-            <br />
-
-            <textarea
-                placeholder="인증에 대한 코멘트를 입력하세요"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={3}
-                style={{ width: 300, marginTop: 10 }}
-                className="border rounded p-2"
-            />
-
             <canvas ref={canvasRef} style={{ display: "none" }} />
 
-            <button
-                onClick={uploadPhoto}
-                disabled={uploading || !canvasRef.current}
-                className={`px-4 py-2 rounded mt-4 text-white ${
-                    uploading ? "bg-gray-400" : "bg-green-500"
-                }`}
-            >
-                {uploading ? "업로드 중..." : "사진 업로드 및 제출"}
-            </button>
-
-            {photoUrl && (
-                <div style={{ marginTop: 20 }}>
-                    <h3>업로드된 사진</h3>
-                    <img src={photoUrl} alt="Verification" style={{ maxWidth: 300 }} />
+            {/* 사진 미리보기 모달 */}
+            {showModal && (
+                <div className="modal-overlay">
+                    <div className="modal-container">
+                        <h3 style={{ marginBottom: '15px' }}>촬영된 사진</h3>
+                        
+                        {photoUrl && (
+                            <img 
+                                src={photoUrl} 
+                                alt="Captured" 
+                                className="modal-image"
+                            />
+                        )}
+                        
+                        <textarea
+                            placeholder="인증에 대한 코멘트를 입력하세요"
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            rows={3}
+                            className="textBox"
+                        />
+                        
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <button
+                                onClick={retakePhoto}
+                                className="cameraButton"
+                            >
+                                다시 촬영
+                            </button>
+                            
+                            <button
+                                onClick={uploadPhoto}
+                                disabled={uploading}
+                                className="captureButton"
+                            >
+                                {uploading ? "업로드 중..." : "업로드 및 제출"}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

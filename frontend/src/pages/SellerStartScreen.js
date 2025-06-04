@@ -1,8 +1,7 @@
-// SellerStartScreen.js
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../css/Sellers.css';
+import '../css/Sellers.css'; 
 
 export default function SellerStartScreen() {
     const [searchParams] = useSearchParams();
@@ -32,12 +31,15 @@ export default function SellerStartScreen() {
             const res = await axios.get(`http://localhost:8080/api/saber`, {
                 params: {
                     token: tokenToUse,
-                    visitorKey: visitorKey,
+                    visitorKey: visitorKey, // 'visitor:' 오타 수정
                 },
                 withCredentials: true,
             });
 
+            // 세션을 다음 페이지에서 사용할 수 있도록 저장
             localStorage.setItem('sessionId', res.data.id);
+
+            // 자동 이동
             navigate('/seller/permission');
         } catch (e) {
             setError('인증 시작 실패');
@@ -53,20 +55,31 @@ export default function SellerStartScreen() {
         }
     }, [searchParams]);
 
+    const goToGuide = () => {
+        navigate('/seller/guide');
+    };
+
     return (
-        <div className="container">
-            <h2 className="title">판매자 인증을 시작합니다</h2>
-            <p className="description">아래 버튼을 눌러 본인 인증을 시작해 주세요</p>
+        <div className="seller-start-container">
+            <h2 className="title">판매자 인증 시작</h2>
 
-            <button
-                className="seller-start-button"
-                onClick={() => startVerification(token)}
-                disabled={loading || !token}
-            >
-                인증 시작
-            </button>
-
-            {error && <p className="timerText" style={{ color: 'red' }}>{error}</p>}
+            {/* 버튼들을 감싸는 Flexbox 컨테이너 */}
+            <div className="button-group">
+                <button 
+                    className="seller-start-button" 
+                    onClick={() => startVerification(token)} 
+                    disabled={loading || !token}
+                >
+                    인증 시작
+                </button>
+                {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+                <button 
+                    className="confirmButton" 
+                    onClick={goToGuide}
+                >
+                    서비스 설명 및 사용법
+                </button>
+            </div>
         </div>
     );
 }

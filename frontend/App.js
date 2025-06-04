@@ -45,6 +45,7 @@ function App() {
             <Route path="/seller/guide" element={<SellerUsageGuideScreen/>}/>
             <Route path="/seller/permission" element={<SellerPermissionScreen/>}/>
             <Route path="/seller/denied" element={<SellerPermissionDeniedScreen/>}/>
+            <Route path="/seller/verification-start" element={<SellerVerificationStartScreen />} />
             <Route path="/seller/camera" element={<SellerCameraScreen/>}/>
             <Route path="/seller/verification-complete" element={<SellerVerificationCompleteScreen/>}/>
             <Route path="/seller/verification-failed" element={<SellerVerificationFailedScreen/>}/>
