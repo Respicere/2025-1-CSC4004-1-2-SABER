@@ -13,6 +13,7 @@ function VerificationCamera() {
     const [uploading, setUploading] = useState(false);
     const [cameraFacingMode, setCameraFacingMode] = useState('user');
 
+    // 1. 카메라 시작 및 전환 로직
     useEffect(() => {
         startCamera();
 
@@ -23,6 +24,36 @@ function VerificationCamera() {
             }
         };
     }, [cameraFacingMode]); // cameraFacingMode가 변경될 때마다 이 useEffect를 재실행
+
+    // 2. 보안 위험 감지 useEffect
+    useEffect(() => {
+        const handleSecurityRisk = () => {
+            // videoRef.current.srcObject를 통해 현재 스트림에 접근
+            if (videoRef.current && videoRef.current.srcObject) {
+                videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+                videoRef.current.srcObject = null; // 스트림을 명시적으로 null로 설정
+            }
+            navigate('/capture-warning'); // 경고 페이지로 이동
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'hidden') {
+                handleSecurityRisk();
+            }
+        };
+
+        const handleBlur = () => {
+            handleSecurityRisk();
+        };
+
+        window.addEventListener('blur', handleBlur);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener('blur', handleBlur);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [navigate]); // videoRef.current.srcObject는 직접적인 의존성 배열에 넣기 어려워 navigate만 포함
 
     // 랜덤 코드 생성 함수
     const generateRandomCode = () => {
@@ -42,39 +73,39 @@ function VerificationCamera() {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; // 배경색 (반투명 흰색)
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)'; // 테두리색
         ctx.lineWidth = 2;
-        
+
         // 폰트 크기 동적 조정 (캔버스 크기에 따라)
         const fontSize = Math.max(16, Math.min(canvasWidth, canvasHeight) * 0.04);
         ctx.font = `bold ${fontSize}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
+
         // 텍스트 크기 측정
         const textMetrics = ctx.measureText(watermarkText);
         const textWidth = textMetrics.width;
         const textHeight = fontSize;
-        
+
         // 워터마크 위치 (우하단)
         const padding = 20;
         const x = canvasWidth - textWidth / 2 - padding;
         const y = canvasHeight - textHeight / 2 - padding;
-        
+
         // 배경 박스 그리기
         const boxPadding = 10;
         ctx.fillRect(
-            x - textWidth / 2 - boxPadding, 
-            y - textHeight / 2 - boxPadding, 
-            textWidth + boxPadding * 2, 
+            x - textWidth / 2 - boxPadding,
+            y - textHeight / 2 - boxPadding,
+            textWidth + boxPadding * 2,
             textHeight + boxPadding * 2
         );
-        
+
         // 텍스트 테두리 그리기
         ctx.strokeText(watermarkText, x, y);
-        
+
         // 텍스트 그리기
         ctx.fillStyle = 'black';
         ctx.fillText(watermarkText, x, y);
-        
+
         ctx.restore();
     };
 
@@ -104,7 +135,7 @@ function VerificationCamera() {
             // navigate('/permission-denied'); // 예시: 권한 거부 페이지
         }
     };
-    
+
     const takePhoto = () => {
         if (!videoRef.current || !canvasRef.current) return;
 
@@ -114,7 +145,7 @@ function VerificationCamera() {
         canvas.height = video.videoHeight || 480;
 
         const ctx = canvas.getContext("2d");
-        
+
         // 비디오 이미지를 캔버스에 그리기
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -124,7 +155,7 @@ function VerificationCamera() {
         const date = now.toLocaleDateString('ko-KR');
         const time = now.toLocaleTimeString('ko-KR', { hour12: false });
         const watermarkText = `${randomCode} | ${date} ${time}`;
-        
+
         drawWatermark(ctx, canvas.width, canvas.height, watermarkText);
 
         // 캔버스에서 사진 미리보기용 URL 생성
@@ -218,15 +249,15 @@ function VerificationCamera() {
                 <div className="modal-overlay">
                     <div className="modal-container">
                         <h3 style={{ marginBottom: '15px' }}>촬영된 사진</h3>
-                        
+
                         {photoUrl && (
-                            <img 
-                                src={photoUrl} 
-                                alt="Captured" 
+                            <img
+                                src={photoUrl}
+                                alt="Captured"
                                 className="modal-image"
                             />
                         )}
-                        
+
                         <textarea
                             placeholder="인증에 대한 코멘트를 입력하세요"
                             value={comment}
@@ -234,7 +265,7 @@ function VerificationCamera() {
                             rows={3}
                             className="textBox"
                         />
-                        
+
                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                             <button
                                 onClick={retakePhoto}
@@ -242,7 +273,7 @@ function VerificationCamera() {
                             >
                                 다시 촬영
                             </button>
-                            
+
                             <button
                                 onClick={uploadPhoto}
                                 disabled={uploading}
